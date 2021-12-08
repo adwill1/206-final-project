@@ -40,6 +40,14 @@ def get_deaths_from_api():
     data = r.text
     dict_list = json.loads(data)
 
+    deaths_list = []
+    for country_key in dict_list:
+        deaths = dict_list[country_key]["All"]["deaths"]
+        deaths_list.append(deaths)
+    print(deaths_list)
+    print(len(deaths_list))
+    return deaths_list
+
 
 
 
