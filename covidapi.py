@@ -21,6 +21,22 @@ def get_countries_from_api():
     #print(len(country_list))
     return country_list
 
+#get continent
+def get_continents_from_api():
+    url = "https://covid-api.mmediagroup.fr/v1/cases"
+    r = requests.get(url)
+    data = r.text
+    dict_list = json.loads(data)
+
+    continents_list = []
+    for country_key in dict_list:
+        continent = dict_list[country_key]["All"]["continent"]
+        continents_list.append(continent)
+    
+    print(continents_list)
+    #print(len(continents_list))
+    return continents_list
+
 def get_cases_from_api():
     url = "https://covid-api.mmediagroup.fr/v1/cases"
     r = requests.get(url)
@@ -51,12 +67,13 @@ def get_deaths_from_api():
 
 def create_full_dictionary():
     country_list = get_countries_from_api()
+    continents_list = get_continents_from_api()
     cases_list = get_cases_from_api()
     deaths_list = get_deaths_from_api()
 
     tuples_list = []
     for i in range(len(country_list)):
-        tup = (country_list[i], cases_list[i], deaths_list[i])
+        tup = (country_list[i], cases_list[i], deaths_list[i], continents_list[i])
         tuples_list.append(tup)
     #print(tuples_list)
     data_dictionary = {}
@@ -66,6 +83,7 @@ def create_full_dictionary():
         sub_dict = {}
         sub_dict["confirmed"] = tup[1]
         sub_dict["deaths"] = tup[2]
+        sub_dict["continent"] = tup[3]
         sub_dict_list.append(sub_dict)
     
     for i in range(len(country_list)):
@@ -73,19 +91,65 @@ def create_full_dictionary():
             country = tup[0]
             data_dictionary[country] = sub_dict_list[i]
     
-    #print(data_dictionary)
+    print(data_dictionary)
     return data_dictionary
 
+#set up the database
 def setUpDatabase(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+db_name)
     cur = conn.cursor()
     return cur, conn
 
+#create the table for continents and ids
+def create_continents_table(cur, conn, data_dictionary):
+    cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
+    
+    continent_list = []
+    for country in data_dictionary.keys():
+        continent = data_dictionary[country]["continent"]
+        continent_list.append(continent)
+    
+    for i in range(len(data_dictionary)):
+        cur.execute("INSERT INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
+
+    conn.commit()   
+
+
+#create the table for country, cases, deaths, continent_id
+def create_covid_deaths_database(cur, conn, data_dictionary):
+    cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, confirmed_cases INTEGER, confirmed_deaths INTEGER, continent_id INTEGER)")
+    
+    for country in data_dictionary.keys():
+        name = country
+        cases = data_dictionary[country]["cases"]
+        deaths = data_dictionary[country]["deaths"]
+        continent_name = data_dictionary[country]["continent"]
+    
+        cur.execute("SELECT id FROM Continents WHERE continent = ?", continent_name)
+        continent_ids = cur.fetchall()
+        for cont in continent_ids:
+            continent_id = cont[0]
+    
+
+        
+    cur.execute("INSERT INTO CovidIndo (country, confirmed_cases, confirmed_deaths, continent_id) VALUES (?,?,?,?)", (name, cases, deaths, continent_id))
+    conn.commit()
+    
+    
+    
+           
+    pass 
+
+
 class TestCases(unittest.TestCase):
     def test_get_countries_from_api(self):
         country_list = get_countries_from_api()
         self.assertEqual(len(country_list), 197)
+
+    def test_get_continents_from_api(self):
+        continent_list = get_continents_from_api()
+        self.assertEqual(len(continent_list), 197)
     
     def test_get_cases_from_api(self):
         cases_list = get_cases_from_api()
@@ -103,11 +167,18 @@ class TestCases(unittest.TestCase):
 def main():
     #print("This is main")
     get_countries_from_api()
+    get_continents_from_api()
     get_cases_from_api()
     get_deaths_from_api()
-    create_full_dictionary()
+    
+    data_dictionary = create_full_dictionary()
+    
+    cur, conn = setUpDatabase("CovidInfo.db")
+    create_continents_table(cur, conn, data_dictionary)
+    create_covid_deaths_database(cur, conn, data_dictionary)
+    
 
-main()
 if __name__ == '__main__':
+    main()
     unittest.main(verbosity=2)
 
