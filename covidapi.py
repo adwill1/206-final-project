@@ -35,6 +35,10 @@ def get_cases_from_api():
     return cases_list
 
 def get_deaths_from_api():
+    url = "https://covid-api.mmediagroup.fr/v1/cases"
+    r = requests.get(url)
+    data = r.text
+    dict_list = json.loads(data)
 
 
 
