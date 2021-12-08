@@ -11,6 +11,7 @@ import requests
 import re
 import csv
 import matplotlib
+import sqlite3
 
 #web scrape to get...
 #median wealth per US adult for each country
@@ -77,9 +78,40 @@ def get_dist_wealth_median():
             count = count + 1
     return median_list
 
-#will create table if not exists with a country id
-def create_wealth_db():
-    pass
+
+def create_dict(country_list, means, medians):
+    data_dict = {}
+    for n in range(len(country_list)):
+        cur_dict = {}
+        cur_dict['name'] = country_list[n][1]
+        cur_dict['mean'] = means[n][1]
+        cur_dict['median'] = medians[n][1]
+        data_dict[country_list[n][0]] = cur_dict
+
+    return data_dict
+
+
+#to set up the database
+def setUpDatabase(db_name):
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db_name)
+    cur = conn.cursor()
+    return cur, conn
+
+
+#set up weath db
+#could either have everything in one file, and would have to 
+# organize the stuff in a different way. This was we could add 
+def setUpWealthDB(cur, conn, wealth_dict):
+    cur.execute("CREATE TABLE IF NOT EXISTS Wealth (id INTEGER PRIMARY KEY, country_name TEXT, mean_wealth INTEGER, median_wealth INTEGER)")
+    for key in wealth_dict.keys():
+        cur_key = key
+        name = wealth_dict[cur_key]['name']
+        mean = wealth_dict[cur_key]['mean']
+        median = wealth_dict[cur_key]['median']
+        cur.execute("INSERT INTO Wealth (id, country_name, mean_wealth, median_wealth) VALUES (?,?,?,?)", (cur_key,name,mean,median))
+    conn.commit()
+
 
 #creates a visual for median vs mean 
 def create_visual():
@@ -113,12 +145,30 @@ class TestCases(unittest.TestCase):
 
         self.assertEqual(median[0][1], '734')
 
-
-
+    def test_create_dict(self):
+        name = get_country_name()
+        means = get_dist_weath_mean()
+        medians = get_dist_wealth_median()
+        cur_dict = create_dict(name, means, medians)
+        self.assertEqual(len(cur_dict), 168)
+        self.assertEqual(type(cur_dict), dict)
+        first_key = list(cur_dict.keys())[0]
+        first_val = list(cur_dict.values())[1]
+        self.assertEqual(type(first_key), int)
+        self.assertEqual(type(first_val), dict)
+        self.assertEqual(first_key, 1)
+        self.assertEqual(len(first_val), 3)
 
 def main():
-    yuh = get_country_name()
-    print(yuh)
+    cur, conn = setUpDatabase("wealthData.db")
+    name = get_country_name()
+    means = get_dist_weath_mean()
+    medians = get_dist_wealth_median()
+    full_dict = create_dict(name, means, medians)
+    setUpWealthDB(cur, conn, full_dict)
+
+    conn.close()
+
 
 main()
 if __name__ == '__main__':
