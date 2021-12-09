@@ -194,15 +194,6 @@ def create_dict(country_list, means, medians):
 
     return data_dict
 
-
-#to set up the database
-def setUpDatabase(db_name):
-    path = os.path.dirname(os.path.abspath(__file__))
-    conn = sqlite3.connect(path+'/'+db_name)
-    cur = conn.cursor()
-    return cur, conn
-
-
 #set up weath db
 #could either have everything in one file, and would have to 
 # organize the stuff in a different way. This was we could add 
@@ -216,6 +207,38 @@ def setUpWealthDB(cur, conn, wealth_dict):
         median = wealth_dict[cur_key]['median']
         cur.execute("INSERT INTO Wealth (country_name, mean_wealth, median_wealth) VALUES (?,?,?)", (name,mean,median))
     conn.commit()
+
+#to set up the database
+def setUpDatabase(db_name):
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+db_name)
+    cur = conn.cursor()
+    return cur, conn
+
+def combineDB(cur, conn):
+    pass
+    cur.execute('''SELECT CovidInfo.country,CovidInfo.confirmed_cases,CovidInfo.confirmed_deaths,Wealth.mean_wealth,Wealth.median_wealth 
+                FROM  CovidInfo
+                JOIN Wealth 
+                ON Wealth.country_name=CovidInfo.country''')
+    big_list = cur.fetchall()
+    conn.commit()
+    return big_list
+
+def create_final_table(cur, conn, data):
+    cur.execute('''CREATE TABLE IF NOT EXISTS Complete 
+    (country TEXT PRIMARY KEY, confirmed_cases INTEGER, deaths INTEGER, 
+    mean_wealth INTEGER, median_wealth INTEGER)
+    ''')
+    for tup in data:
+        country = tup[0]
+        confirmed = tup[1]
+        deaths = tup[2]
+        mean = tup[3]
+        median = tup[4]
+        cur.execute('INSERT INTO Complete (country, confirmed_cases, deaths, mean_wealth, median_wealth) VALUES (?,?,?,?,?)', (country, confirmed, deaths, mean, median))
+    conn.commit()
+    pass
 
 
 def main():
@@ -235,6 +258,13 @@ def main():
     medians = get_dist_wealth_median()
     full_dict = create_dict(name, means, medians)
     setUpWealthDB(cur, conn, full_dict)
+
+    all = combineDB(cur,conn)
+    print(all[0])
+    print(len(all))
+    print(type(all))
+
+    create_final_table(cur, conn, all)
 
     conn.close()
 
