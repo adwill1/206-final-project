@@ -137,7 +137,7 @@ def create_covid_deaths_database(cur, conn, data_dictionary):
     
 
         
-    cur.execute("INSERT INTO CovidIndo (country, confirmed_cases, confirmed_deaths, continent_id) VALUES (?,?,?,?)", (name, cases, deaths, continent_id))
+        cur.execute("INSERT INTO CovidIndo (country, confirmed_cases, confirmed_deaths, continent_id) VALUES (?,?,?,?)", (name, cases, deaths, continent_id))
     conn.commit()
     
     

@@ -1,6 +1,6 @@
 
 # SI 206 Final Project- country wealth web scrape
-# Name: 
+# Name: Lauren Fulcher
 
 import json
 import unittest
@@ -19,24 +19,21 @@ import sqlite3
 #put them into a database with country id as row border, 
 # then country name, wealth dist mean, wealth dist median as column borders
 
-# return a dict with a country id for each country name as the key and the name as the val
+# return a list with a country id for each country name as the first tuple element and the name as the second
 # will have every country listed in the table of the wiki page
 def get_country_name():
     url = "https://en.wikipedia.org/wiki/Distribution_of_wealth"
     resp = requests.get(url)
     soup = BeautifulSoup(resp.content, 'html.parser')
-
     count = 1
     list = []
     table = soup.find('table', class_='wikitable sortable')
     rows = table.findAll('a')
-
     for element in rows:
         cur_country = element.get('title')
         cur_tup = (count, cur_country)
         list.append(cur_tup)
         count = count + 1
-    
     return list
 
 #will return a list with each element as a tuple: (country id, wealth mean)
@@ -59,7 +56,7 @@ def get_dist_weath_mean():
     return mean_list
 
 
-#will return a dict with each key:val as a country name:wealth median
+#will return a list of tuples with each tuple as a (country name,wealth median)
 def get_dist_wealth_median():
     url = "https://en.wikipedia.org/wiki/Distribution_of_wealth"
     resp = requests.get(url)
@@ -79,6 +76,8 @@ def get_dist_wealth_median():
     return median_list
 
 
+
+#key = id, value = {'name': 'afghanistan', 'mean':3, 'median':7}
 def create_dict(country_list, means, medians):
     data_dict = {}
     for n in range(len(country_list)):
@@ -103,13 +102,14 @@ def setUpDatabase(db_name):
 #could either have everything in one file, and would have to 
 # organize the stuff in a different way. This was we could add 
 def setUpWealthDB(cur, conn, wealth_dict):
-    cur.execute("CREATE TABLE IF NOT EXISTS Wealth (id INTEGER PRIMARY KEY, country_name TEXT, mean_wealth INTEGER, median_wealth INTEGER)")
+    cur.execute("DROP TABLE IF EXISTS Wealth")
+    cur.execute("CREATE TABLE IF NOT EXISTS Wealth (country_name TEXT PRIMARY KEY, mean_wealth INTEGER, median_wealth INTEGER)")
     for key in wealth_dict.keys():
         cur_key = key
         name = wealth_dict[cur_key]['name']
         mean = wealth_dict[cur_key]['mean']
         median = wealth_dict[cur_key]['median']
-        cur.execute("INSERT INTO Wealth (id, country_name, mean_wealth, median_wealth) VALUES (?,?,?,?)", (cur_key,name,mean,median))
+        cur.execute("INSERT INTO Wealth (country_name, mean_wealth, median_wealth) VALUES (?,?,?)", (name,mean,median))
     conn.commit()
 
 
@@ -129,20 +129,16 @@ class TestCases(unittest.TestCase):
         self.assertEqual(type(id[0][1]), str)
         self.assertEqual(id[3][0], 4)
 
-
     def test_get_wealth_mean(self):
         mean = get_dist_weath_mean()
         self.assertEqual(len(mean), 168)
         self.assertEqual(type(mean), list)
-
         self.assertEqual(mean[0][1], '1,744')
-
 
     def test_get_wealth_median(self):
         median = get_dist_wealth_median()
         self.assertEqual(len(median), 168)
         self.assertEqual(type(median), list)
-
         self.assertEqual(median[0][1], '734')
 
     def test_create_dict(self):
