@@ -92,7 +92,7 @@ def create_full_dictionary():
         country = tuples_list[i][0]
         data_dictionary[country] = sub_dict_list[i]
     
-    print(data_dictionary)
+    #print(data_dictionary)
     return data_dictionary
 
 #set up the database
@@ -135,6 +135,8 @@ def create_covid_info_table(cur, conn, data_dictionary):
         for cont in continent_ids:
             continent_id = cont[0]
         cur.execute("INSERT INTO CovidInfo (country, confirmed_cases, confirmed_deaths, continent_id) VALUES (?,?,?,?)", (name, cases, deaths, continent_id))
+    cur.execute("SELECT * FROM CovidInfo")
+    print(cur.rowcount)
     conn.commit()
      
 
@@ -174,7 +176,7 @@ def main():
     cur, conn = setUpDatabase("CovidInfo.db")
     create_continents_table(cur, conn, data_dictionary)
     create_covid_info_table(cur, conn, data_dictionary)
-    
+    conn.close()
 
 if __name__ == '__main__':
     main()
