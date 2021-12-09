@@ -30,10 +30,12 @@ def get_continents_from_api():
 
     continents_list = []
     for country_key in dict_list:
-        continent = dict_list[country_key]["All"]["continent"]
-        continents_list.append(continent)
-    
-    print(continents_list)
+        try:
+            continent = dict_list[country_key]["All"]["continent"]
+            continents_list.append(continent)
+        except KeyError:
+            continents_list.append("N/A")
+    #print(continents_list)
     #print(len(continents_list))
     return continents_list
 
@@ -91,7 +93,7 @@ def create_full_dictionary():
             country = tup[0]
             data_dictionary[country] = sub_dict_list[i]
     
-    print(data_dictionary)
+    #print(data_dictionary)
     return data_dictionary
 
 #set up the database
@@ -103,6 +105,7 @@ def setUpDatabase(db_name):
 
 #create the table for continents and ids
 def create_continents_table(cur, conn, data_dictionary):
+    cur.execute("DROP TABLE IF EXISTS Continents")
     cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
     
     continent_list = []
@@ -118,11 +121,12 @@ def create_continents_table(cur, conn, data_dictionary):
 
 #create the table for country, cases, deaths, continent_id
 def create_covid_deaths_database(cur, conn, data_dictionary):
+    cur.execute("DROP TABLE IF EXISTS CovidInfo")
     cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, confirmed_cases INTEGER, confirmed_deaths INTEGER, continent_id INTEGER)")
     
     for country in data_dictionary.keys():
         name = country
-        cases = data_dictionary[country]["cases"]
+        cases = data_dictionary[country]["confirmed"]
         deaths = data_dictionary[country]["deaths"]
         continent_name = data_dictionary[country]["continent"]
     
