@@ -87,13 +87,12 @@ def create_full_dictionary():
         sub_dict["deaths"] = tup[2]
         sub_dict["continent"] = tup[3]
         sub_dict_list.append(sub_dict)
-    
+    #print(sub_dict_list)
     for i in range(len(country_list)):
-        for tup in tuples_list:
-            country = tup[0]
-            data_dictionary[country] = sub_dict_list[i]
+        country = tuples_list[i][0]
+        data_dictionary[country] = sub_dict_list[i]
     
-    #print(data_dictionary)
+    print(data_dictionary)
     return data_dictionary
 
 #set up the database
@@ -105,45 +104,39 @@ def setUpDatabase(db_name):
 
 #create the table for continents and ids
 def create_continents_table(cur, conn, data_dictionary):
-    cur.execute("DROP TABLE IF EXISTS Continents")
-    cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
-    
     continent_list = []
     for country in data_dictionary.keys():
         continent = data_dictionary[country]["continent"]
-        continent_list.append(continent)
+        if continent not in continent_list:
+            continent_list.append(continent)
     
-    for i in range(len(data_dictionary)):
+    cur.execute("DROP TABLE IF EXISTS Continents")
+    cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
+    
+    for i in range(len(continent_list)):
         cur.execute("INSERT INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
 
     conn.commit()   
 
 
 #create the table for country, cases, deaths, continent_id
-def create_covid_deaths_database(cur, conn, data_dictionary):
+def create_covid_info_table(cur, conn, data_dictionary):
     cur.execute("DROP TABLE IF EXISTS CovidInfo")
     cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, confirmed_cases INTEGER, confirmed_deaths INTEGER, continent_id INTEGER)")
     
-    for country in data_dictionary.keys():
+    for country in data_dictionary:
         name = country
         cases = data_dictionary[country]["confirmed"]
         deaths = data_dictionary[country]["deaths"]
         continent_name = data_dictionary[country]["continent"]
     
-        cur.execute("SELECT id FROM Continents WHERE continent = ?", continent_name)
+        cur.execute("SELECT id FROM Continents WHERE continent = ?", (continent_name,))
         continent_ids = cur.fetchall()
         for cont in continent_ids:
             continent_id = cont[0]
-    
-
-        
-        cur.execute("INSERT INTO CovidIndo (country, confirmed_cases, confirmed_deaths, continent_id) VALUES (?,?,?,?)", (name, cases, deaths, continent_id))
+        cur.execute("INSERT INTO CovidInfo (country, confirmed_cases, confirmed_deaths, continent_id) VALUES (?,?,?,?)", (name, cases, deaths, continent_id))
     conn.commit()
-    
-    
-    
-           
-    pass 
+     
 
 
 class TestCases(unittest.TestCase):
@@ -167,6 +160,7 @@ class TestCases(unittest.TestCase):
         data_dictionary = create_full_dictionary()
         self.assertEqual(len(data_dictionary), 197)
         self.assertEqual(list(data_dictionary.keys())[2], "Algeria")
+        self.assertEqual(data_dictionary["Cambodia"]["continent"], "Asia")
 
 def main():
     #print("This is main")
@@ -179,7 +173,7 @@ def main():
     
     cur, conn = setUpDatabase("CovidInfo.db")
     create_continents_table(cur, conn, data_dictionary)
-    create_covid_deaths_database(cur, conn, data_dictionary)
+    create_covid_info_table(cur, conn, data_dictionary)
     
 
 if __name__ == '__main__':
