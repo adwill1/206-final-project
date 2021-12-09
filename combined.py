@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 #Combined code to link DBs and create visualizations
-
-=======
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
 import json
 import unittest
 import os
@@ -14,8 +10,6 @@ import csv
 import matplotlib
 import sqlite3
 
-<<<<<<< HEAD
-=======
 def select_wealth_data():
     pass
 
@@ -26,7 +20,6 @@ def select_country_data():
     pass
 
 
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
 #functions
 def get_countries_from_api():
     url = "https://covid-api.mmediagroup.fr/v1/cases"
@@ -35,11 +28,6 @@ def get_countries_from_api():
     dict_list = json.loads(data)
 
     country_list = list(dict_list.keys()) 
-<<<<<<< HEAD
-=======
-    #print(country_list)
-    #print(len(country_list))
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
     return country_list
 
 #get continent
@@ -56,11 +44,6 @@ def get_continents_from_api():
             continents_list.append(continent)
         except KeyError:
             continents_list.append("N/A")
-<<<<<<< HEAD
-=======
-    #print(continents_list)
-    #print(len(continents_list))
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
     return continents_list
 
 def get_cases_from_api():
@@ -73,11 +56,6 @@ def get_cases_from_api():
     for country_key in dict_list:
         cases = dict_list[country_key]["All"]["confirmed"]
         cases_list.append(cases)
-<<<<<<< HEAD
-=======
-    #print(cases_list)
-    #print(len(cases_list))
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
     return cases_list
 
 def get_deaths_from_api():
@@ -90,11 +68,6 @@ def get_deaths_from_api():
     for country_key in dict_list:
         deaths = dict_list[country_key]["All"]["deaths"]
         deaths_list.append(deaths)
-<<<<<<< HEAD
-=======
-    #print(deaths_list)
-    #print(len(deaths_list))
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
     return deaths_list
 
 def create_full_dictionary():
@@ -107,10 +80,6 @@ def create_full_dictionary():
     for i in range(len(country_list)):
         tup = (country_list[i], cases_list[i], deaths_list[i], continents_list[i])
         tuples_list.append(tup)
-<<<<<<< HEAD
-=======
-    #print(tuples_list)
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
     data_dictionary = {}
     sub_dict_list = []
     
@@ -120,29 +89,11 @@ def create_full_dictionary():
         sub_dict["deaths"] = tup[2]
         sub_dict["continent"] = tup[3]
         sub_dict_list.append(sub_dict)
-<<<<<<< HEAD
     for i in range(len(country_list)):
         country = tuples_list[i][0]
         data_dictionary[country] = sub_dict_list[i]
     return data_dictionary
 
-=======
-    #print(sub_dict_list)
-    for i in range(len(country_list)):
-        country = tuples_list[i][0]
-        data_dictionary[country] = sub_dict_list[i]
-    
-    print(data_dictionary)
-    return data_dictionary
-
-#set up the database
-def setUpDatabase(db_name):
-    path = os.path.dirname(os.path.abspath(__file__))
-    conn = sqlite3.connect(path+'/'+db_name)
-    cur = conn.cursor()
-    return cur, conn
-
->>>>>>> f52bf1243c8044b34891de0a5411fbcf45f44531
 #create the table for continents and ids
 def create_continents_table(cur, conn, data_dictionary):
     continent_list = []
