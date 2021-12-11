@@ -50,6 +50,7 @@ def calc_avg_wealth(full_dict):
         org_dict[subreg] = rounded
     return org_dict
 
+<<<<<<< HEAD
 def create_wealth_subreg_vis(org_dict):
     pass
     y = []
@@ -63,6 +64,10 @@ def create_wealth_subreg_vis(org_dict):
     plt.title("Average Wealths of Sub Regions")
     plt.show()
 
+=======
+def create_wealth_subreg_vis():
+    pass
+>>>>>>> 64691494fec3ed69cb2ef1960ef99b19482c00df
         
 #________'S CALCULATION
 #get avg life_expectancy from CovidInfo for each continent (get continent_id using JOIN from Continents and CovidInfo)??
@@ -93,7 +98,11 @@ class TestAllMethods(unittest.TestCase):
         full_dict = create_subreg_mean_dict(full_list)
         org_dict = calc_avg_wealth(full_dict)
         self.assertEqual(len(org_dict), 22)
+<<<<<<< HEAD
         create_wealth_subreg_vis(org_dict)
+=======
+        print(org_dict)
+>>>>>>> 64691494fec3ed69cb2ef1960ef99b19482c00df
 
 def main():
     pass
