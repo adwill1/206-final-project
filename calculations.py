@@ -54,7 +54,7 @@ def create_percent_vax_vis(percent_dict):
    plt.title("Percent Vaccinated vs Wealth")
    plt.show()
 
-def wrtie_csv(file_name, percent_dict):
+def write_csv(file_name, percent_dict):
     with open(file_name, "w", newline="") as fileout:
         header =  ["Country"] + ["Percent Vaccinated"]
         csv_write = csv.writer(fileout, delimiter= ',')
@@ -258,7 +258,7 @@ def main():
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+'Combined.db')
     cur = conn.cursor()
-    wrtie_csv("percent_vaccinated.csv", calc_percent_vaccinated(cur, conn))
+    write_csv("percent_vaccinated.csv", calc_percent_vaccinated(cur, conn))
     pass
 
 if __name__ == '__main__':
