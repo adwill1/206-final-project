@@ -3,42 +3,68 @@ import sqlite3
 import unittest
 import os
 import matplotlib.pyplot as plt
+import csv
 
 #ABBY'S CALCULATION
 #get people_vaccinated from CovidInfo and divide by population from Country_Information using JOIN
 def calc_percent_vaccinated(cur, conn):
-    cur.execute('''SELECT CovidInfo.country, CovidInfo.people_vaccinated, Country_Information.population
-    FROM CovidInfo 
-    JOIN Country_Information 
-    ON CovidInfo.country=Country_Information.country_territory_name
-    ''')
-    d = cur.fetchall()
-    conn.commit()   
-    print(d)
-    percent_dict = {}
-    for x in d:
-        country = x[0]
-        pop = x[2]
-        vax = x[1]
-        percent = vax/pop
-        if percent <= 1:
-            if country not in percent_dict:
-                percent = percent * 100
-                percent_dict[country] = (round(percent))
-    print(percent_dict)
-    return percent_dict
-
+   cur.execute('''SELECT Wealth.mean_wealth, CovidInfo.people_vaccinated, Country_Information.population, CovidInfo.country
+   FROM (CovidInfo
+   JOIN Wealth ON CovidInfo.country=Wealth.country_name)
+   JOIN Country_Information
+   ON CovidInfo.country=Country_Information.country_territory_name
+   ''')
+   d = cur.fetchall()
+   conn.commit()  
+   print(d)
+   percent_dict = {}
+   for x in d:
+       wealth = x[0]
+       pop = x[2]
+       vax = x[1]
+       country = x[3]
+       percent = vax/pop
+       if percent <= 1:
+           if country not in percent_dict:
+               percent = percent * 100
+               percent_dict[country] = ((wealth, round(percent)))
+   print(percent_dict)
+   return percent_dict
+ 
 def create_percent_vax_vis(percent_dict):
-    y = []
-    x = []
-    for key in percent_dict.keys():
-        y.append(key)
-        x.append(percent_dict[key])
-    plt.scatter(y,x)
-    plt.ylabel("Country")
-    plt.xlabel("Vaccination Percentage")
-    plt.title("Percent of Vaccinated per Country")
-    plt.show()
+   x = []
+   y = []
+ 
+   for key in percent_dict.keys():
+      cur_x = key
+      cur_y = percent_dict[key]
+      if ',' in str(cur_x):
+          cur_x = key.replace(',','')
+      if ',' in str(cur_y):
+          cur_y = percent_dict[key].replace(',','')
+      cur_x = float(cur_x)
+      cur_y = float(cur_y)
+      if cur_x < 9000:
+          continue
+      x.append(cur_x)
+      y.append(cur_y)
+   plt.scatter(x,y)
+   plt.ylabel("Vaccination Percentage")
+   plt.xlabel("Mean Wealth")
+   plt.title("Percent Vaccinated vs Wealth")
+   plt.show()
+
+def wrtie_csv(file_name, percent_dict):
+    with open(file_name, "w", newline="") as fileout:
+        header =  ["Country"] + ["Percent Vaccinated"]
+        csv_write = csv.writer(fileout, delimiter= ',')
+        csv_write.writerow(header)
+        for info in percent_dict:
+            country_list = []
+            country_list.append(info)
+            country_list.append(percent_dict[info][1])
+            csv_write.writerow(country_list)
+    return None
 
 
 #LAUREN'S CALCULATION
@@ -94,9 +120,6 @@ def create_wealth_subreg_vis(org_dict):
     plt.xlabel("Average Wealth")
     plt.title("Average Wealths of Sub Regions")
     plt.show()
-
-def create_wealth_subreg_vis():
-    pass
         
 #________'S CALCULATION
 #get avg life_expectancy from CovidInfo for each continent (get continent_id using JOIN from Continents and CovidInfo)??
@@ -114,7 +137,7 @@ def get_continent_vaxxes(cur, conn):
     ''')
     data = cur.fetchall()
     conn.commit()
-    print(data)
+    # print(data)
     return data
 
 def create_cont_vax_dict(info_list):
@@ -127,7 +150,7 @@ def create_cont_vax_dict(info_list):
         if cont not in cont_vax_dict.keys():
             cont_vax_dict[cont] = []
         cont_vax_dict[cont].append(vaxxes)
-    print(cont_vax_dict)
+    # print(cont_vax_dict)
     return cont_vax_dict 
 
 def calc_cont_vax_total(cont_vax_dict):
@@ -148,18 +171,53 @@ def create_cont_vax_visual(total_dict):
     for cont in total_dict:
         x_continents.append(cont)
         y_vaccine_totals.append(total_dict[cont])
-    plt.barh(x_continents,y_vaccine_totals)
+    plt.bar(x_continents,y_vaccine_totals)
     plt.ylabel("Vaccination Numbers")
     plt.xlabel("Continent")
     plt.title("Vaccination Totals by Continent")
     plt.show()
 
+#EXTRA CALCULATION- line graph of median_wealth on x axis and life expectancy on y axis
+#get median_wealth from Wealth and life expectancy from CovidInfo, return list of tups
+def calc_avg_life_exp_of_cont(cur, conn):
+   cur.execute('''SELECT Wealth.median_wealth,CovidInfo.life_expectancy
+   FROM Wealth
+   JOIN CovidInfo
+   ON CovidInfo.country=Wealth.country_name
+   ''')
+   list_both = cur.fetchall()
+   conn.commit()
+   new_list = []
+   for tup in list_both:
+       if tup[0]=="N/A" or tup[1]=="N/A" or not type(tup[1])==float:
+           continue
+       else:
+           cur_tup = (tup[0], tup[1])
+           new_list.append(cur_tup)
+   return new_list
+  
+def create_extra_vis(list_tups):
+   list_x = []
+   list_y = []
+   for tup in list_tups:
+       cur_x = tup[0]
+       cur_y = tup[1]
+       if ',' in str(cur_x):
+           cur_x = tup[0].replace(',','')
+       if ',' in str(cur_y):
+           cur_y = tup[1].replace(',','')
+       cur_x = float(cur_x)
+       cur_y = float(cur_y)
+       if cur_x > 150000:
+           continue
+       list_x.append(cur_x)
+       list_y.append(cur_y)
  
-    
-
-
-
-
+   plt.scatter(list_x,list_y)
+   plt.title('Wealth vs Life Expectancy')
+   plt.xlabel('Median Wealth per Adult')
+   plt.ylabel('Life Expectancy')
+   plt.show()
 
 class TestAllMethods(unittest.TestCase):
     def setUp(self):
@@ -197,6 +255,10 @@ class TestAllMethods(unittest.TestCase):
 
 
 def main():
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path+'/'+'Combined.db')
+    cur = conn.cursor()
+    wrtie_csv("percent_vaccinated.csv", calc_percent_vaccinated(cur, conn))
     pass
 
 if __name__ == '__main__':
