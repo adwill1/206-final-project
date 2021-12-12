@@ -11,7 +11,7 @@ import sqlite3
 
 #functions
 def get_countries_from_api():
-    url = "https://covid-api.mmediagroup.fr/v1/cases"
+    url = "https://covid-api.mmediagroup.fr/v1/vaccines"
     r = requests.get(url)
     data = r.text
     dict_list = json.loads(data)
@@ -23,7 +23,7 @@ def get_countries_from_api():
 
 #get continent
 def get_continents_from_api():
-    url = "https://covid-api.mmediagroup.fr/v1/cases"
+    url = "https://covid-api.mmediagroup.fr/v1/vaccines"
     r = requests.get(url)
     data = r.text
     dict_list = json.loads(data)
@@ -39,59 +39,59 @@ def get_continents_from_api():
     #print(len(continents_list))
     return continents_list
 
-def get_cases_from_api():
-    url = "https://covid-api.mmediagroup.fr/v1/cases"
+def get_ppl_vax_from_api():
+    url = "https://covid-api.mmediagroup.fr/v1/vaccines"
     r = requests.get(url)
     data = r.text
     dict_list = json.loads(data)
-    
-    cases_list = []
+    vax_list = []
     for country_key in dict_list:
-        cases = dict_list[country_key]["All"]["confirmed"]
-        cases_list.append(cases)
-    #print(cases_list)
-    #print(len(cases_list))
-    return cases_list
+        vaxxed = dict_list[country_key]["All"]["people_vaccinated"]
+        vax_list.append(vaxxed)
+    #print(vax_list)
+    #print(len(vax_list))
+    return vax_list
 
-def get_deaths_from_api():
-    url = "https://covid-api.mmediagroup.fr/v1/cases"
+def get_life_ex_from_api():
+    url = "https://covid-api.mmediagroup.fr/v1/vaccines"
     r = requests.get(url)
     data = r.text
     dict_list = json.loads(data)
-
-    deaths_list = []
+    life_ex_list = []
     for country_key in dict_list:
-        deaths = dict_list[country_key]["All"]["deaths"]
-        deaths_list.append(deaths)
-    #print(deaths_list)
-    #print(len(deaths_list))
-    return deaths_list
+        try:
+            cur_life_ex = dict_list[country_key]["All"]["life_expectancy"]
+            life_ex_list.append(cur_life_ex)
+        except KeyError:
+            life_ex_list.append("N/A")
+    #print(life_ex_list)
+    #print(len(life_ex_list)
+    return life_ex_list
 
 def create_full_dictionary():
     country_list = get_countries_from_api()
     continents_list = get_continents_from_api()
-    cases_list = get_cases_from_api()
-    deaths_list = get_deaths_from_api()
-
+    vaxxed_list = get_ppl_vax_from_api()
+    life_exp_list = get_life_ex_from_api()
     tuples_list = []
     for i in range(len(country_list)):
-        tup = (country_list[i], cases_list[i], deaths_list[i], continents_list[i])
+        tup = (country_list[i], vaxxed_list[i], life_exp_list[i], continents_list[i])
         tuples_list.append(tup)
     #print(tuples_list)
+    
     data_dictionary = {}
     sub_dict_list = []
-    
     for tup in tuples_list:
         sub_dict = {}
-        sub_dict["confirmed"] = tup[1]
-        sub_dict["deaths"] = tup[2]
+        sub_dict["people_vaccinated"] = tup[1]
+        sub_dict["life_expectancy"] = tup[2]
         sub_dict["continent"] = tup[3]
         sub_dict_list.append(sub_dict)
     #print(sub_dict_list)
+    
     for i in range(len(country_list)):
         country = tuples_list[i][0]
         data_dictionary[country] = sub_dict_list[i]
-    
     #print(data_dictionary)
     return data_dictionary
 
@@ -122,22 +122,26 @@ def create_continents_table(cur, conn, data_dictionary):
 #create the table for country, cases, deaths, continent_id
 def create_covid_info_table(cur, conn, data_dictionary):
     cur.execute("DROP TABLE IF EXISTS CovidInfo")
-    cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, confirmed_cases INTEGER, confirmed_deaths INTEGER, continent_id INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, people_vaccinated INTEGER, life_expectancy INTEGER, continent_id INTEGER)")
     
     for country in data_dictionary:
         name = country
-        cases = data_dictionary[country]["confirmed"]
-        deaths = data_dictionary[country]["deaths"]
+        vaxxed = data_dictionary[country]["people_vaccinated"]
+        life_exp = data_dictionary[country]["life_expectancy"]
         continent_name = data_dictionary[country]["continent"]
     
         cur.execute("SELECT id FROM Continents WHERE continent = ?", (continent_name,))
         continent_ids = cur.fetchall()
         for cont in continent_ids:
             continent_id = cont[0]
-        cur.execute("INSERT INTO CovidInfo (country, confirmed_cases, confirmed_deaths, continent_id) VALUES (?,?,?,?)", (name, cases, deaths, continent_id))
+        cur.execute("INSERT INTO CovidInfo (country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?)", (name, vaxxed, life_exp, continent_id))
     cur.execute("SELECT * FROM CovidInfo")
     print(cur.rowcount)
-    conn.commit()
+    conn.commit() 
+
+
+
+     
      
 class TestCases(unittest.TestCase):
     def test_get_countries_from_api(self):
@@ -148,13 +152,13 @@ class TestCases(unittest.TestCase):
         continent_list = get_continents_from_api()
         self.assertEqual(len(continent_list), 197)
     
-    def test_get_cases_from_api(self):
-        cases_list = get_cases_from_api()
-        self.assertEqual(len(cases_list), 197)
+    def test_get_ppl_vax_from_api(self):
+        vax_list = get_ppl_vax_from_api()
+        self.assertEqual(len(vax_list), 197)
 
-    def test_get_deaths_from_api(self):
-        deaths_list = get_deaths_from_api()
-        self.assertEqual(len(deaths_list), 197)
+    def test_get_life_ex_from_api(self):
+        life_ex_list = get_life_ex_from_api()
+        self.assertEqual(len(life_ex_list), 197)
     
     def test_create_full_dictionary(self):
         data_dictionary = create_full_dictionary()
@@ -166,8 +170,8 @@ def main():
     #print("This is main")
     get_countries_from_api()
     get_continents_from_api()
-    get_cases_from_api()
-    get_deaths_from_api()
+    get_ppl_vax_from_api()
+    get_life_ex_from_api()
     
     data_dictionary = create_full_dictionary()
     
