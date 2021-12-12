@@ -113,7 +113,7 @@ def create_continents_table(cur, conn, data_dictionary):
         if continent not in continent_list:
             continent_list.append(continent)
     
-    cur.execute("DROP TABLE IF EXISTS Continents")
+    #cur.execute("DROP TABLE IF EXISTS Continents")
     cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
     count = 0
 
@@ -125,7 +125,7 @@ def create_continents_table(cur, conn, data_dictionary):
 
 #create the table for country, cases, deaths, continent_id
 def create_covid_info_table(cur, conn, data_dictionary):
-    cur.execute("DROP TABLE IF EXISTS CovidInfo")
+    #cur.execute("DROP TABLE IF EXISTS CovidInfo")
     cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country_id INTEGER PRIMARY KEY, country TEXT UNIQUE, people_vaccinated INTEGER, life_expectancy INTEGER, continent_id INTEGER)")
     count = 0
     for country in data_dictionary:
@@ -141,9 +141,9 @@ def create_covid_info_table(cur, conn, data_dictionary):
             continent_id = cont[0]
         cur.execute("INSERT OR IGNORE INTO CovidInfo (country_id, country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?,?)", (country_id, name, vaxxed, life_exp, continent_id))
         if cur.rowcount == 1:
-                count += 1
-                if count == 25:
-                    break
+            count += 1
+            if count == 25:
+                break
     #cur.execute("SELECT * FROM CovidInfo")
    
     conn.commit() 
