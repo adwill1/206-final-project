@@ -106,7 +106,7 @@ def create_continents_table(cur, conn, data_dictionary):
     for i in range(len(continent_list)):
         cur.execute("INSERT OR IGNORE INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
         
-    conn.commit() 
+    conn.commit()   
 
 #create the table for country, cases, deaths, continent_id
 def create_covid_info_table(cur, conn, data_dictionary):
@@ -131,7 +131,7 @@ def create_covid_info_table(cur, conn, data_dictionary):
                 break
     #cur.execute("SELECT * FROM CovidInfo")
    
-    conn.commit()
+    conn.commit() 
      
 #WEALTH DATA
 def get_country_name():
