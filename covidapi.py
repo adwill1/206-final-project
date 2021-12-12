@@ -145,7 +145,7 @@ def create_covid_info_table(cur, conn, data_dictionary):
                 if count == 25:
                     break
     #cur.execute("SELECT * FROM CovidInfo")
-    #print(cur.rowcount)
+   
     conn.commit() 
 
 
