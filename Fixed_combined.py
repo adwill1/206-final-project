@@ -108,26 +108,23 @@ def create_continents_table(cur, conn, data_dictionary):
 
 #create the table for country, cases, deaths, continent_id
 def create_covid_info_table(cur, conn, data_dictionary):
-    cur.execute("DROP TABLE IF EXISTS CovidInfo")
-    cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, people_vaccinated INTEGER, life_expectancy INTEGER, continent_id INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, people_vaccinated INTEGER UNIQUE, life_expectancy INTEGER, continent_id INTEGER)")
     count = 0
     for country in data_dictionary:
         name = country
         vaxxed = data_dictionary[country]["people_vaccinated"]
         life_exp = data_dictionary[country]["life_expectancy"]
         continent_name = data_dictionary[country]["continent"]
-    
         cur.execute("SELECT id FROM Continents WHERE continent = ?", (continent_name,))
         continent_ids = cur.fetchall()
         for cont in continent_ids:
             continent_id = cont[0]
         cur.execute("INSERT OR IGNORE INTO CovidInfo (country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?)", (name, vaxxed, life_exp, continent_id))
         if cur.rowcount == 1:
-                count += 1
-                if count == 25:
-                    break
-    cur.execute("SELECT * FROM CovidInfo")
-    #print(cur.rowcount)
+            count += 1
+            if count == 25:
+                break
+    # cur.execute("SELECT * FROM CovidInfo")
     conn.commit() 
      
 #WEALTH DATA
@@ -199,7 +196,7 @@ def create_dict(country_list, means, medians):
 #could either have everything in one file, and would have to 
 # organize the stuff in a different way. This was we could add 
 def setUpWealthDB(cur, conn, wealth_dict):
-    #cur.execute("DROP TABLE IF EXISTS Wealth")
+    cur.execute("DROP TABLE IF EXISTS Wealth")
     cur.execute("CREATE TABLE IF NOT EXISTS Wealth (country_name TEXT PRIMARY KEY, mean_wealth INTEGER, median_wealth INTEGER)")
     for key in wealth_dict.keys():
         cur_key = key
@@ -287,14 +284,18 @@ def combine_list(europe, americas, africa, oceania, asia):
     return sorted_country_list
     
 def setUpCountryDatabase(cur, conn, country_list):
-    cur.execute("DROP TABLE IF EXISTS Country_Information")
-    cur.execute("CREATE TABLE Country_Information (country_id INTEGER PRIMARY KEY, country_territory_name TEXT, sub_region TEXT, population INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS Country_Information (country_id INTEGER PRIMARY KEY, country_territory_name TEXT UNIQUE, sub_region TEXT, population INTEGER)")
+    count = 0
     for item in country_list:
         id = item[0]
         country = item[1][0]
         population = item[1][1]
         sub_region = item[1][2]
-        cur.execute("INSERT INTO Country_Information (country_id, country_territory_name, sub_region, population) VALUES (?,?,?,?)", (id , country, sub_region, population))
+        cur.execute("INSERT OR IGNORE INTO Country_Information (country_id, country_territory_name, sub_region, population) VALUES (?,?,?,?)", (id , country, sub_region, population))
+        if cur.rowcount == 1:
+            count += 1
+            if count == 25:
+                break
     conn.commit()
 
 #COMBINED FUNCTIONS
