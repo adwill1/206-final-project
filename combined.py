@@ -74,7 +74,7 @@ def create_full_dictionary():
     
     data_dictionary = {}
     sub_dict_list = []
-    country_id = 0
+    country_id = 1
     for tup in tuples_list:
         sub_dict = {}
         sub_dict["people_vaccinated"] = tup[1]
@@ -82,13 +82,11 @@ def create_full_dictionary():
         sub_dict["continent"] = tup[3]
         sub_dict["country_id"] = country_id
         sub_dict_list.append(sub_dict)
-        country_id +=1 
-    #print(sub_dict_list)
+        country_id +=1
     
     for i in range(len(country_list)):
         country = tuples_list[i][0]
         data_dictionary[country] = sub_dict_list[i]
-    print(data_dictionary)
     return data_dictionary
 
 #create the table for continents and ids
@@ -101,7 +99,6 @@ def create_continents_table(cur, conn, data_dictionary):
     
     #cur.execute("DROP TABLE IF EXISTS Continents")
     cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
-    count = 0
 
     for i in range(len(continent_list)):
         cur.execute("INSERT OR IGNORE INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
@@ -129,8 +126,6 @@ def create_covid_info_table(cur, conn, data_dictionary):
             count += 1
             if count == 25:
                 break
-    #cur.execute("SELECT * FROM CovidInfo")
-   
     conn.commit() 
      
 #WEALTH DATA
@@ -213,7 +208,7 @@ def setUpWealthDB(cur, conn, wealth_dict):
     conn.commit()
 
 #COUNTRY DATA
-#functions
+#functions getting data from API
 def get_europe_data():
     url = 'https://restcountries.com/v3.1/region/europe'
     request = requests.get(url)
@@ -279,6 +274,7 @@ def get_asia_data():
         asia_list.append((country, population, sub_region))
     return asia_list
 
+#Combinining data from each contient into a list 
 def combine_list(europe, americas, africa, oceania, asia):
     country_list = europe + americas + africa + oceania + asia
     sorted_list = sorted(country_list, key = lambda x: x[0])
@@ -289,6 +285,7 @@ def combine_list(europe, americas, africa, oceania, asia):
         country_id += 1
     return sorted_country_list
     
+#setting up the table with countries 
 def setUpCountryDatabase(cur, conn, country_list):
     cur.execute("CREATE TABLE IF NOT EXISTS Country_Information (country_id INTEGER PRIMARY KEY, country_territory_name TEXT UNIQUE, sub_region TEXT, population INTEGER)")
     count = 0
@@ -313,39 +310,11 @@ def setUpDatabase(db_name):
     cur = conn.cursor()
     return cur, conn
 
-#def get_all_data(cur, conn):
-#    cur.execute('''SELECT Wealth.country_name,CovidInfo.confirmed_cases,CovidInfo.confirmed_deaths,Wealth.mean_wealth,Wealth.median_wealth,Country_Information.sub_region,Country_Information.population 
-#                FROM  CovidInfo
-#                JOIN (Wealth JOIN Country_Information
-#                ON Wealth.country_name=Country_Information.country_territory_name)
-#                ON CovidInfo.country=Wealth.country_name''')
-#    big_list = cur.fetchall()
-#    conn.commit()
-#    return big_list
-
-#ef create_final_table(cur, conn, data):
-#    cur.execute('''CREATE TABLE IF NOT EXISTS Complete 
-#    (country TEXT PRIMARY KEY, confirmed_cases INTEGER, deaths INTEGER, 
-#    mean_wealth INTEGER, median_wealth INTEGER, subregion TEXT, population INTEGER)
-#    ''')
-#    for tup in data:
-#        country = tup[0]
-#        confirmed = tup[1]
-#        deaths = tup[2]
-#        mean = tup[3]
-#        median = tup[4]
-#        subreg = tup[5]
-#        pop = tup[6]
-#        cur.execute('INSERT INTO Complete (country, confirmed_cases, deaths, mean_wealth, median_wealth, subregion, population) VALUES (?,?,?,?,?,?,?)', (country, confirmed, deaths, mean, median, subreg, pop))
-#    conn.commit()
-#    pass
-
-
 def main():
 
     cur, conn = setUpDatabase("Combined.db")
 
-    #covid database
+    #covid tables
     get_countries_from_api()
     get_continents_from_api()
     get_ppl_vax_from_api()
@@ -364,14 +333,6 @@ def main():
     #country tables
     country_list = combine_list(get_europe_data(), get_americas_data(), get_africa_data(), get_oceania_data(), get_asia_data())
     setUpCountryDatabase(cur, conn, country_list)
-
-    #combine tables
-#    all = get_all_data(cur,conn)
-#    print(all[0])
-#    print(len(all))
-#    print(type(all))
-
-#    create_final_table(cur, conn, all)
 
     conn.close()
 

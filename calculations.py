@@ -242,7 +242,7 @@ class TestAllMethods(unittest.TestCase):
         org_dict = calc_avg_wealth(full_dict)
         self.assertEqual(len(org_dict), 22)
         #create_wealth_subreg_vis(org_dict)
-        print(org_dict)
+
     
     def test_get_cont_vax(self):
         info_list = get_continent_vaxxes(self.cur, self.conn)
@@ -250,14 +250,12 @@ class TestAllMethods(unittest.TestCase):
 
     def test_calc_percent_vaccinated(self):
        calc_percent_vaccinated(self.cur, self.conn)
-
     
     def test_create_cont_vax_visual(self):
         cont_vax_data = get_continent_vaxxes(self.cur, self.conn)
         cont_vax_dict = create_cont_vax_dict(cont_vax_data)
         cont_vax_total = calc_cont_vax_total(cont_vax_dict)
         #create_cont_vax_visual(cont_vax_total)
-
 
 def main():
     path = os.path.dirname(os.path.abspath(__file__))
