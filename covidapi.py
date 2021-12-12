@@ -81,18 +81,21 @@ def create_full_dictionary():
     
     data_dictionary = {}
     sub_dict_list = []
+    country_id = 0
     for tup in tuples_list:
         sub_dict = {}
         sub_dict["people_vaccinated"] = tup[1]
         sub_dict["life_expectancy"] = tup[2]
         sub_dict["continent"] = tup[3]
+        sub_dict["country_id"] = country_id
         sub_dict_list.append(sub_dict)
+        country_id +=1 
     #print(sub_dict_list)
     
     for i in range(len(country_list)):
         country = tuples_list[i][0]
         data_dictionary[country] = sub_dict_list[i]
-    #print(data_dictionary)
+    print(data_dictionary)
     return data_dictionary
 
 #set up the database
@@ -116,34 +119,32 @@ def create_continents_table(cur, conn, data_dictionary):
 
     for i in range(len(continent_list)):
         cur.execute("INSERT OR IGNORE INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
-        if cur.rowcount == 1:
-                count += 1
-                if count == 25:
-                    break
+        
     conn.commit()   
 
 
 #create the table for country, cases, deaths, continent_id
 def create_covid_info_table(cur, conn, data_dictionary):
     cur.execute("DROP TABLE IF EXISTS CovidInfo")
-    cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, people_vaccinated INTEGER, life_expectancy INTEGER, continent_id INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country_id INTEGER PRIMARY KEY, country TEXT UNIQUE, people_vaccinated INTEGER, life_expectancy INTEGER, continent_id INTEGER)")
     count = 0
     for country in data_dictionary:
         name = country
         vaxxed = data_dictionary[country]["people_vaccinated"]
         life_exp = data_dictionary[country]["life_expectancy"]
         continent_name = data_dictionary[country]["continent"]
+        country_id = data_dictionary[country]["country_id"]
     
         cur.execute("SELECT id FROM Continents WHERE continent = ?", (continent_name,))
         continent_ids = cur.fetchall()
         for cont in continent_ids:
             continent_id = cont[0]
-        cur.execute("INSERT OR IGNORE INTO CovidInfo (country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?)", (name, vaxxed, life_exp, continent_id))
+        cur.execute("INSERT OR IGNORE INTO CovidInfo (country_id, country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?,?)", (country_id, name, vaxxed, life_exp, continent_id))
         if cur.rowcount == 1:
                 count += 1
                 if count == 25:
                     break
-    cur.execute("SELECT * FROM CovidInfo")
+    #cur.execute("SELECT * FROM CovidInfo")
     #print(cur.rowcount)
     conn.commit() 
 
