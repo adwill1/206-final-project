@@ -47,7 +47,7 @@ def create_percent_vax_vis(percent_dict):
          continue
      x.append(cur_x)
      y.append(cur_y)
-  plt.scatter(x,y)
+  plt.scatter(x,y, color="green") 
   plt.ylabel("Vaccination Percentage")
   plt.xlabel("Mean Wealth (in USD)")
   plt.title("Percent Vaccinated vs Wealth")
@@ -115,7 +115,7 @@ def create_wealth_subreg_vis(org_dict):
     for key in org_dict.keys():
         y.append(key)
         x.append(org_dict[key])
-    plt.barh(y,x)
+    plt.barh(y,x, color="purple")
     plt.ylabel("Sub Region")
     plt.yticks(rotation=45, ha='right')
     plt.xlabel("Average Wealth (in USD)")
@@ -169,7 +169,7 @@ def create_cont_vax_visual(total_dict):
         y_vaccine_totals.append(total_dict[cont])
     x_continents = x_continents[0:6]
     y_vaccine_totals = y_vaccine_totals[0:6]
-    plt.bar(x_continents,y_vaccine_totals)
+    plt.bar(x_continents,y_vaccine_totals, color="red")
     plt.ylabel("Vaccination Numbers (in Billions)")
     plt.xlabel("Continent")
     plt.title("Vaccination Totals by Continent")
