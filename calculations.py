@@ -49,7 +49,7 @@ def create_percent_vax_vis(percent_dict):
      y.append(cur_y)
   plt.scatter(x,y)
   plt.ylabel("Vaccination Percentage")
-  plt.xlabel("Mean Wealth")
+  plt.xlabel("Mean Wealth (in USD)")
   plt.title("Percent Vaccinated vs Wealth")
   plt.show()
 
@@ -118,7 +118,7 @@ def create_wealth_subreg_vis(org_dict):
     plt.barh(y,x)
     plt.ylabel("Sub Region")
     plt.yticks(rotation=45, ha='right')
-    plt.xlabel("Average Wealth")
+    plt.xlabel("Average Wealth (in USD)")
     plt.title("Average Wealths of Sub Regions")
     plt.show()
         
@@ -213,7 +213,7 @@ def create_extra_vis(list_tups):
  
    plt.scatter(list_x,list_y)
    plt.title('Wealth vs Life Expectancy')
-   plt.xlabel('Median Wealth per Adult')
+   plt.xlabel('Median Wealth per Adult (in USD)')
    plt.ylabel('Life Expectancy')
    plt.show()
 
@@ -241,12 +241,12 @@ class TestAllMethods(unittest.TestCase):
         full_dict = create_subreg_mean_dict(full_list)
         org_dict = calc_avg_wealth(full_dict)
         self.assertEqual(len(org_dict), 22)
-        create_wealth_subreg_vis(org_dict)
+        #create_wealth_subreg_vis(org_dict)
         print(org_dict)
     
     def test_get_cont_vax(self):
         info_list = get_continent_vaxxes(self.cur, self.conn)
-        create_cont_vax_dict(info_list)
+        #create_cont_vax_dict(info_list)
 
     def test_calc_percent_vaccinated(self):
        calc_percent_vaccinated(self.cur, self.conn)
@@ -256,8 +256,7 @@ class TestAllMethods(unittest.TestCase):
         cont_vax_data = get_continent_vaxxes(self.cur, self.conn)
         cont_vax_dict = create_cont_vax_dict(cont_vax_data)
         cont_vax_total = calc_cont_vax_total(cont_vax_dict)
-        create_cont_vax_visual(cont_vax_total)
-
+        #create_cont_vax_visual(cont_vax_total)
 
 
 def main():
@@ -265,7 +264,26 @@ def main():
     conn = sqlite3.connect(path+'/'+'Combined.db')
     cur = conn.cursor()
     write_csv("percent_vaccinated.csv", calc_percent_vaccinated(cur, conn))
-    
+
+    #Visual 1
+    percent_dict = calc_percent_vaccinated(cur, conn)
+    create_percent_vax_vis(percent_dict)
+
+    #Visual 2 
+    all_data = get_wealth_of_subreg(cur, conn)
+    full_dict = create_subreg_mean_dict(all_data)
+    org_dict = calc_avg_wealth(full_dict)
+    create_wealth_subreg_vis(org_dict)
+
+    #Visual 3
+    data = get_continent_vaxxes(cur, conn)
+    cont_vax_dict = create_cont_vax_dict(data)
+    cont_vax_total = calc_cont_vax_total(cont_vax_dict)
+    create_cont_vax_visual(cont_vax_total)
+
+    #Visual 4
+    new_list = calc_avg_life_exp_of_cont(cur, conn)
+    create_extra_vis(new_list)
 
 if __name__ == '__main__':
     main()
