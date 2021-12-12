@@ -1,3 +1,4 @@
+from logging import info
 import sqlite3
 import unittest
 import os
@@ -50,9 +51,7 @@ def calc_avg_wealth(full_dict):
         org_dict[subreg] = rounded
     return org_dict
 
-<<<<<<< HEAD
 def create_wealth_subreg_vis(org_dict):
-    pass
     y = []
     x = []
     for key in org_dict.keys():
@@ -64,15 +63,71 @@ def create_wealth_subreg_vis(org_dict):
     plt.title("Average Wealths of Sub Regions")
     plt.show()
 
-=======
 def create_wealth_subreg_vis():
     pass
->>>>>>> 64691494fec3ed69cb2ef1960ef99b19482c00df
         
 #________'S CALCULATION
 #get avg life_expectancy from CovidInfo for each continent (get continent_id using JOIN from Continents and CovidInfo)??
 def calc_avg_life_exp_of_cont(cur, conn):
+
     pass
+
+#SARAH'S CALCULATION
+#get country info and people_vaccinated info from CovidInfo and continent info from continent using JOIN
+def get_continent_vaxxes(cur, conn):
+    cur.execute('''SELECT CovidInfo.country, CovidInfo.people_vaccinated, Continents.continent 
+    FROM CovidInfo 
+    JOIN Continents 
+    ON CovidInfo.continent_id=Continents.id
+    ''')
+    data = cur.fetchall()
+    conn.commit()
+    print(data)
+    return data
+
+def create_cont_vax_dict(info_list):
+    cont_vax_dict={}
+    
+    for tup in info_list:
+        country = tup[0]
+        vaxxes = tup[1]
+        cont = tup[2]
+        if cont not in cont_vax_dict.keys():
+            cont_vax_dict[cont] = []
+        cont_vax_dict[cont].append(vaxxes)
+    print(cont_vax_dict)
+    return cont_vax_dict 
+
+def calc_cont_vax_total(cont_vax_dict):
+    total_dict = {}
+
+    for continent, vax_list in cont_vax_dict.items():
+        vax_total = 0
+        for num in vax_list:
+            vax_total += num
+        total_dict[continent] = vax_total
+    
+    return total_dict
+
+#create visual comparing vaccination numbers by continent
+def create_cont_vax_visual(total_dict): 
+    x_continents = []
+    y_vaccine_totals = []
+    for cont in total_dict:
+        x_continents.append(cont)
+        y_vaccine_totals.append(total_dict[cont])
+    plt.barh(x_continents,y_vaccine_totals)
+    plt.ylabel("Vaccination Numbers")
+    plt.xlabel("Continent")
+    plt.title("Vaccination Totals by Continent")
+    plt.show()
+
+ 
+    
+
+
+
+
 
 class TestAllMethods(unittest.TestCase):
     def setUp(self):
@@ -98,13 +153,16 @@ class TestAllMethods(unittest.TestCase):
         full_dict = create_subreg_mean_dict(full_list)
         org_dict = calc_avg_wealth(full_dict)
         self.assertEqual(len(org_dict), 22)
-<<<<<<< HEAD
         create_wealth_subreg_vis(org_dict)
-=======
         print(org_dict)
->>>>>>> 64691494fec3ed69cb2ef1960ef99b19482c00df
+    
+    def test_get_cont_vax(self):
+        info_list = get_continent_vaxxes(self.cur, self.conn)
+        create_cont_vax_dict(info_list)
+
 
 def main():
+   
     pass
 
 if __name__ == '__main__':
