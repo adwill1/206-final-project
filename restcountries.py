@@ -93,21 +93,19 @@ def combine_list(europe, americas, africa, oceania, asia):
     return sorted_country_list
     
 def setUpCountryDatabase(cur, conn, country_list):
-    cur.execute("DROP TABLE IF EXISTS Country_Information")
-    cur.execute("CREATE TABLE Country_Information (country_id INTEGER PRIMARY KEY, country_territory_name TEXT, sub_region TEXT, population INTEGER)")
+    cur.execute("CREATE TABLE IF NOT EXISTS Country_Information (country_id INTEGER PRIMARY KEY, country_territory_name TEXT UNIQUE, sub_region TEXT, population INTEGER)")
+    count = 0
     for item in country_list:
         id = item[0]
         country = item[1][0]
         population = item[1][1]
         sub_region = item[1][2]
-        cur.execute("INSERT INTO Country_Information (country_id, country_territory_name, sub_region, population) VALUES (?,?,?,?)", (id , country, sub_region, population))
+        cur.execute("INSERT OR IGNORE INTO Country_Information (country_id, country_territory_name, sub_region, population) VALUES (?,?,?,?)", (id , country, sub_region, population))
+        if cur.rowcount == 1:
+            count += 1
+            if count == 25:
+                break
     conn.commit()
-
-  
-    #     population = data[1][1]
-    #     sub_region = data[2]
-    #     # cur.execute("INSERT INTO Country_Information (country_territory_name, sub_region, population) VALUES (?,?,?)", (country, sub_region, population))
-    # conn.commit()
 
 def main():
     print("This is main")
