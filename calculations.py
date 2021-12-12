@@ -4,10 +4,42 @@ import unittest
 import os
 import matplotlib.pyplot as plt
 
-#_______'S CALCULATION
+#ABBY'S CALCULATION
 #get people_vaccinated from CovidInfo and divide by population from Country_Information using JOIN
 def calc_percent_vaccinated(cur, conn):
-    pass
+    cur.execute('''SELECT CovidInfo.country, CovidInfo.people_vaccinated, Country_Information.population
+    FROM CovidInfo 
+    JOIN Country_Information 
+    ON CovidInfo.country=Country_Information.country_territory_name
+    ''')
+    d = cur.fetchall()
+    conn.commit()   
+    print(d)
+    percent_dict = {}
+    for x in d:
+        country = x[0]
+        pop = x[2]
+        vax = x[1]
+        percent = vax/pop
+        if percent <= 1:
+            if country not in percent_dict:
+                percent = percent * 100
+                percent_dict[country] = (round(percent))
+    print(percent_dict)
+    return percent_dict
+
+def create_percent_vax_vis(percent_dict):
+    y = []
+    x = []
+    for key in percent_dict.keys():
+        y.append(key)
+        x.append(percent_dict[key])
+    plt.scatter(y,x)
+    plt.ylabel("Country")
+    plt.xlabel("Vaccination Percentage")
+    plt.title("Percent of Vaccinated per Country")
+    plt.show()
+
 
 #LAUREN'S CALCULATION
 #get mean_wealth from WealthDB and sub_region from Country_Information using JOIN
@@ -160,9 +192,11 @@ class TestAllMethods(unittest.TestCase):
         info_list = get_continent_vaxxes(self.cur, self.conn)
         create_cont_vax_dict(info_list)
 
+    def test_calc_percent_vaccinated(self):
+       calc_percent_vaccinated(self.cur, self.conn)
+
 
 def main():
-   
     pass
 
 if __name__ == '__main__':
