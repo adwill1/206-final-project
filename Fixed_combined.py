@@ -93,29 +93,42 @@ def create_continents_table(cur, conn, data_dictionary):
         continent = data_dictionary[country]["continent"]
         if continent not in continent_list:
             continent_list.append(continent)
+    
     cur.execute("DROP TABLE IF EXISTS Continents")
     cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
+    count = 0
+
     for i in range(len(continent_list)):
-        cur.execute("INSERT INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
-    conn.commit()   
+        cur.execute("INSERT OR IGNORE INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
+        if cur.rowcount == 1:
+                count += 1
+                if count == 25:
+                    break
+    conn.commit()
 
 #create the table for country, cases, deaths, continent_id
 def create_covid_info_table(cur, conn, data_dictionary):
     cur.execute("DROP TABLE IF EXISTS CovidInfo")
     cur.execute("CREATE TABLE IF NOT EXISTS CovidInfo (country TEXT PRIMARY KEY, people_vaccinated INTEGER, life_expectancy INTEGER, continent_id INTEGER)")
+    count = 0
     for country in data_dictionary:
         name = country
         vaxxed = data_dictionary[country]["people_vaccinated"]
         life_exp = data_dictionary[country]["life_expectancy"]
         continent_name = data_dictionary[country]["continent"]
+    
         cur.execute("SELECT id FROM Continents WHERE continent = ?", (continent_name,))
         continent_ids = cur.fetchall()
         for cont in continent_ids:
             continent_id = cont[0]
-        cur.execute("INSERT INTO CovidInfo (country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?)", (name, vaxxed, life_exp, continent_id))
+        cur.execute("INSERT OR IGNORE INTO CovidInfo (country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?)", (name, vaxxed, life_exp, continent_id))
+        if cur.rowcount == 1:
+                count += 1
+                if count == 25:
+                    break
     cur.execute("SELECT * FROM CovidInfo")
-    print(cur.rowcount)
-    conn.commit()
+    #print(cur.rowcount)
+    conn.commit() 
      
 #WEALTH DATA
 def get_country_name():
