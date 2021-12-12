@@ -32,27 +32,27 @@ def calc_percent_vaccinated(cur, conn):
    return percent_dict
  
 def create_percent_vax_vis(percent_dict):
-   x = []
-   y = []
- 
-   for key in percent_dict.keys():
-      cur_x = key
-      cur_y = percent_dict[key]
-      if ',' in str(cur_x):
-          cur_x = key.replace(',','')
-      if ',' in str(cur_y):
-          cur_y = percent_dict[key].replace(',','')
-      cur_x = float(cur_x)
-      cur_y = float(cur_y)
-      if cur_x < 9000:
-          continue
-      x.append(cur_x)
-      y.append(cur_y)
-   plt.scatter(x,y)
-   plt.ylabel("Vaccination Percentage")
-   plt.xlabel("Mean Wealth")
-   plt.title("Percent Vaccinated vs Wealth")
-   plt.show()
+  x = []
+  y = []
+  for key in percent_dict.keys():
+     cur_x = percent_dict[key][0]
+     cur_y = percent_dict[key][1]
+     if ',' in str(cur_x):
+         cur_x = percent_dict[key][0].replace(',','')
+     if ',' in str(cur_y):
+         cur_y = percent_dict[key][1].replace(',','')
+     cur_x = float(cur_x)
+     cur_y = float(cur_y)
+     if cur_x < 9000 or cur_x > 550000:
+         continue
+     x.append(cur_x)
+     y.append(cur_y)
+  plt.scatter(x,y)
+  plt.ylabel("Vaccination Percentage")
+  plt.xlabel("Mean Wealth")
+  plt.title("Percent Vaccinated vs Wealth")
+  plt.show()
+
 
 def write_csv(file_name, percent_dict):
     with open(file_name, "w", newline="") as fileout:
@@ -117,15 +117,11 @@ def create_wealth_subreg_vis(org_dict):
         x.append(org_dict[key])
     plt.barh(y,x)
     plt.ylabel("Sub Region")
+    plt.yticks(rotation=45, ha='right')
     plt.xlabel("Average Wealth")
     plt.title("Average Wealths of Sub Regions")
     plt.show()
         
-#________'S CALCULATION
-#get avg life_expectancy from CovidInfo for each continent (get continent_id using JOIN from Continents and CovidInfo)??
-def calc_avg_life_exp_of_cont(cur, conn):
-
-    pass
 
 #SARAH'S CALCULATION
 #get country info and people_vaccinated info from CovidInfo and continent info from continent using JOIN
@@ -160,8 +156,8 @@ def calc_cont_vax_total(cont_vax_dict):
         vax_total = 0
         for num in vax_list:
             vax_total += num
-        total_dict[continent] = vax_total
-    
+        total_dict[continent] = (vax_total/1000000000)
+    print(total_dict)
     return total_dict
 
 #create visual comparing vaccination numbers by continent
@@ -171,8 +167,10 @@ def create_cont_vax_visual(total_dict):
     for cont in total_dict:
         x_continents.append(cont)
         y_vaccine_totals.append(total_dict[cont])
+    x_continents = x_continents[0:6]
+    y_vaccine_totals = y_vaccine_totals[0:6]
     plt.bar(x_continents,y_vaccine_totals)
-    plt.ylabel("Vaccination Numbers")
+    plt.ylabel("Vaccination Numbers (in Billions)")
     plt.xlabel("Continent")
     plt.title("Vaccination Totals by Continent")
     plt.show()
@@ -253,13 +251,21 @@ class TestAllMethods(unittest.TestCase):
     def test_calc_percent_vaccinated(self):
        calc_percent_vaccinated(self.cur, self.conn)
 
+    
+    def test_create_cont_vax_visual(self):
+        cont_vax_data = get_continent_vaxxes(self.cur, self.conn)
+        cont_vax_dict = create_cont_vax_dict(cont_vax_data)
+        cont_vax_total = calc_cont_vax_total(cont_vax_dict)
+        create_cont_vax_visual(cont_vax_total)
+
+
 
 def main():
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path+'/'+'Combined.db')
     cur = conn.cursor()
     write_csv("percent_vaccinated.csv", calc_percent_vaccinated(cur, conn))
-    pass
+    
 
 if __name__ == '__main__':
     main()
