@@ -71,19 +71,24 @@ def create_full_dictionary():
         tup = (country_list[i], vaxxed_list[i], life_exp_list[i], continents_list[i])
         tuples_list.append(tup)
     #print(tuples_list)
+    
     data_dictionary = {}
     sub_dict_list = []
+    country_id = 0
     for tup in tuples_list:
         sub_dict = {}
         sub_dict["people_vaccinated"] = tup[1]
         sub_dict["life_expectancy"] = tup[2]
         sub_dict["continent"] = tup[3]
+        sub_dict["country_id"] = country_id
         sub_dict_list.append(sub_dict)
+        country_id +=1 
     #print(sub_dict_list)
+    
     for i in range(len(country_list)):
         country = tuples_list[i][0]
         data_dictionary[country] = sub_dict_list[i]
-    #print(data_dictionary)
+    print(data_dictionary)
     return data_dictionary
 
 #create the table for continents and ids
