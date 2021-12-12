@@ -1,6 +1,6 @@
 
 # SI 206 Final Project- Covid API
-# Name: Sarah 
+# Name: Sarah Whitman
 
 import json
 import unittest
@@ -112,10 +112,14 @@ def create_continents_table(cur, conn, data_dictionary):
     
     cur.execute("DROP TABLE IF EXISTS Continents")
     cur.execute("CREATE TABLE IF NOT EXISTS Continents (id INTEGER PRIMARY KEY, continent TEXT)")
-    
-    for i in range(len(continent_list)):
-        cur.execute("INSERT INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
+    count = 0
 
+    for i in range(len(continent_list)):
+        cur.execute("INSERT OR IGNORE INTO Continents (id, continent) VALUES (?,?)",(i,continent_list[i]))   
+        if cur.rowcount == 1:
+                count += 1
+                if count == 25:
+                    break
     conn.commit()   
 
 
@@ -136,7 +140,7 @@ def create_covid_info_table(cur, conn, data_dictionary):
             continent_id = cont[0]
         cur.execute("INSERT INTO CovidInfo (country, people_vaccinated, life_expectancy, continent_id) VALUES (?,?,?,?)", (name, vaxxed, life_exp, continent_id))
     cur.execute("SELECT * FROM CovidInfo")
-    print(cur.rowcount)
+    #print(cur.rowcount)
     conn.commit() 
 
 
@@ -146,23 +150,23 @@ def create_covid_info_table(cur, conn, data_dictionary):
 class TestCases(unittest.TestCase):
     def test_get_countries_from_api(self):
         country_list = get_countries_from_api()
-        self.assertEqual(len(country_list), 197)
+        self.assertEqual(len(country_list), 193)
 
     def test_get_continents_from_api(self):
         continent_list = get_continents_from_api()
-        self.assertEqual(len(continent_list), 197)
+        self.assertEqual(len(continent_list), 193)
     
     def test_get_ppl_vax_from_api(self):
         vax_list = get_ppl_vax_from_api()
-        self.assertEqual(len(vax_list), 197)
+        self.assertEqual(len(vax_list), 193)
 
     def test_get_life_ex_from_api(self):
         life_ex_list = get_life_ex_from_api()
-        self.assertEqual(len(life_ex_list), 197)
+        self.assertEqual(len(life_ex_list), 193)
     
     def test_create_full_dictionary(self):
         data_dictionary = create_full_dictionary()
-        self.assertEqual(len(data_dictionary), 197)
+        self.assertEqual(len(data_dictionary), 193)
         self.assertEqual(list(data_dictionary.keys())[2], "Algeria")
         self.assertEqual(data_dictionary["Cambodia"]["continent"], "Asia")
 
