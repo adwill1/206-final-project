@@ -148,8 +148,6 @@ def create_covid_info_table(cur, conn, data_dictionary):
    
     conn.commit() 
 
-
-
      
      
 class TestCases(unittest.TestCase):
