@@ -16,7 +16,6 @@ def calc_percent_vaccinated(cur, conn):
    ''')
    d = cur.fetchall()
    conn.commit()  
-   print(d)
    percent_dict = {}
    for x in d:
        wealth = x[0]
@@ -28,7 +27,6 @@ def calc_percent_vaccinated(cur, conn):
            if country not in percent_dict:
                percent = percent * 100
                percent_dict[country] = ((wealth, round(percent)))
-   print(percent_dict)
    return percent_dict
  
 def create_percent_vax_vis(percent_dict):
@@ -133,7 +131,6 @@ def get_continent_vaxxes(cur, conn):
     ''')
     data = cur.fetchall()
     conn.commit()
-    # print(data)
     return data
 
 def create_cont_vax_dict(info_list):
@@ -146,7 +143,6 @@ def create_cont_vax_dict(info_list):
         if cont not in cont_vax_dict.keys():
             cont_vax_dict[cont] = []
         cont_vax_dict[cont].append(vaxxes)
-    # print(cont_vax_dict)
     return cont_vax_dict 
 
 def calc_cont_vax_total(cont_vax_dict):
@@ -157,7 +153,6 @@ def calc_cont_vax_total(cont_vax_dict):
         for num in vax_list:
             vax_total += num
         total_dict[continent] = (vax_total/1000000000)
-    print(total_dict)
     return total_dict
 
 #create visual comparing vaccination numbers by continent
@@ -226,8 +221,8 @@ class TestAllMethods(unittest.TestCase):
     def test_calc_avg_mean_wealth_of_subreg(self):
         yuh = get_wealth_of_subreg(self.cur, self.conn)
         self.assertEqual(type(yuh), list)
-        print(yuh[0])
-        print(len(yuh))
+        #print(yuh[0])
+        #print(len(yuh))
 
     def test_create_subreg_mean_dict(self):
         full_list = get_wealth_of_subreg(self.cur, self.conn)
