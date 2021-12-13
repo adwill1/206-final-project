@@ -50,6 +50,7 @@ def create_percent_vax_vis(percent_dict):
   plt.xlabel("Mean Wealth (in USD)")
   plt.title("Percent Vaccinated vs Wealth")
   plt.show()
+  return None
 
 
 def write_csv(file_name, percent_dict):
@@ -119,6 +120,7 @@ def create_wealth_subreg_vis(org_dict):
     plt.xlabel("Average Wealth (in USD)")
     plt.title("Average Wealths of Sub Regions")
     plt.show()
+    return None
         
 
 #SARAH'S CALCULATION
@@ -169,6 +171,7 @@ def create_cont_vax_visual(total_dict):
     plt.xlabel("Continent")
     plt.title("Vaccination Totals by Continent")
     plt.show()
+    return None
 
 #EXTRA CALCULATION- line graph of median_wealth on x axis and life expectancy on y axis
 #get median_wealth from Wealth and life expectancy from CovidInfo, return list of tups
@@ -211,6 +214,7 @@ def create_extra_vis(list_tups):
    plt.xlabel('Median Wealth per Adult (in USD)')
    plt.ylabel('Life Expectancy')
    plt.show()
+   return None
 
 class TestAllMethods(unittest.TestCase):
     def setUp(self):
