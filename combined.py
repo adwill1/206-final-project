@@ -197,7 +197,6 @@ def create_dict(country_list, means, medians):
 #could either have everything in one file, and would have to 
 # organize the stuff in a different way. This was we could add 
 def setUpWealthDB(cur, conn, wealth_dict):
-    cur.execute("DROP TABLE IF EXISTS Wealth")
     cur.execute("CREATE TABLE IF NOT EXISTS Wealth (country_name TEXT PRIMARY KEY, mean_wealth INTEGER, median_wealth INTEGER)")
     for key in wealth_dict.keys():
         cur_key = key
