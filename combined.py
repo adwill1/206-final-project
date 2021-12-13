@@ -203,7 +203,7 @@ def setUpWealthDB(cur, conn, wealth_dict):
         name = wealth_dict[cur_key]['name']
         mean = wealth_dict[cur_key]['mean']
         median = wealth_dict[cur_key]['median']
-        cur.execute("INSERT INTO Wealth (country_name, mean_wealth, median_wealth) VALUES (?,?,?)", (name,mean,median))
+        cur.execute("INSERT OR IGNORE INTO Wealth (country_name, mean_wealth, median_wealth) VALUES (?,?,?)", (name,mean,median))
     conn.commit()
 
 #COUNTRY DATA
